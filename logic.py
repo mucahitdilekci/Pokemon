@@ -10,6 +10,8 @@ class Pokemon:
         self.name = None
         self.height=None
         self.weight=None
+        self.hp=random.randint(70, 100)
+        self.power=random.randint(30,60)
         if pokemon_trainer not in Pokemon.pokemons:
             Pokemon.pokemons[pokemon_trainer] = self
         else:
@@ -39,7 +41,7 @@ class Pokemon:
         if not self.name:
             self.name = await self.get_name() 
         await self.load_data() 
-        return (f"Pokémonunuzun ismi: {self.name}\nPokemonun boyu:{self.height/10} metre\nPokemonun kilosu:{self.weight/10} kilogram")  # Pokémon adını içeren dizeyi döndürür
+        return (f"Pokémonunuzun ismi: {self.name}\nPokemonun boyu:{self.height/10} metre\nPokemonun kilosu:{self.weight/10} kilogram\nPokemonun sağlığı:{self.hp}\nPokemonun Gücü:{self.power}")  # Pokémon adını içeren dizeyi döndürür
 
     async def show_img(self):
         url = f'https://pokeapi.co/api/v2/pokemon/{self.pokemon_number}'  # İstek için URL API
@@ -49,3 +51,47 @@ class Pokemon:
                     data = await response.json()
                     img_url = data['sprites']['front_default']
                     return img_url
+                
+    async def attack(self,enemy):
+        if isinstance(enemy,Wizard):
+            chance=random.randint(1,3)
+            if chance==1:
+                return "Sihirbaz kalkan kullandı"
+        if enemy.hp>self.power:
+            enemy.hp-=self.power
+            return f"@{self.pokemon_trainer} @{enemy.pokemon_trainer}'e saldırdı\n düşmanın sağlık durumu:{enemy.hp}"
+        else:
+            enemy.hp=0
+            return f"@{self.pokemon_trainer} @{enemy.pokemon_trainer}'i yendi"
+
+class Wizard(Pokemon):
+    async def attack(self, enemy):
+        magic_power=random.randint(5,14)
+        self.power+=magic_power
+        result = await super().attack(enemy)
+        self.power-=magic_power
+        return result + f"\n Sihirbaz büyülü bir saldırı yaptı ekstra büyü gücü: {magic_power}"
+class Fighter(Pokemon):
+    async def attack(self, enemy):
+        super_power=random.randint(1,19)
+        self.power+=super_power
+        result = await super().attack(enemy)
+        self.power-=super_power
+        return result + f"\n Sihirbaz büyülü bir saldırı yaptı ekstra süper güç: {super_power}"
+    
+
+
+import asyncio
+
+async def main():
+    wizard = Wizard("ali")
+    fighter = Fighter("veli")
+
+    print(await wizard.info())
+    print()
+    print(await fighter.info())
+    print()
+    print(await fighter.attack(wizard))
+
+if __name__ == '__main__':
+    asyncio.run(main())
