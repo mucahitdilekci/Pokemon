@@ -37,7 +37,8 @@ async def go(ctx):
         image_url = await pokemon.show_img()  # Pokémon görüntüsünün URL'sini alırız
         if image_url:
             name=await pokemon.get_name()
-            embed = discord.Embed(title=name.upper())  # Gömülü mesajı oluşturma
+            color=discord.Color.dark_blue()
+            embed = discord.Embed(title=name.upper(),color=color)  # Gömülü mesajı oluşturma
             embed.set_image(url=image_url) 
             boy=pokemon.height/10
             kilo=pokemon.weight/10
@@ -63,5 +64,24 @@ async def attack(ctx):
             await ctx.send("Savaş için her iki tarafın da Pokémon sahibi olması gerekir!")  # Katılımcılardan birinin Pokémon'u yoksa bilgilendiririz
     else:
         await ctx.send("Saldırmak istediğiniz kullanıcıyı etiketleyerek belirtin.")  # Saldırmak için kullanıcıyı etiketleyerek belirtmesini isteriz
+
+@bot.command()
+async def info(ctx):
+    author = ctx.author.name
+    if author in Pokemon.pokemons:
+        pokemon = Pokemon.pokemons[author]
+        await ctx.send(await pokemon.info())
+    else:
+        await ctx.send("Pokémon'un yok!")
+
+@bot.command()
+async def feed(ctx):
+    author = ctx.author.name
+    if author in Pokemon.pokemons:
+        pokemon = Pokemon.pokemons[author]
+        cevap=await pokemon.feed()
+        await ctx.send(cevap)
+    else:
+        await ctx.send("Pokémon'un yok!")
 # Botun çalıştırılması
 bot.run(token)

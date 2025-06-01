@@ -1,6 +1,6 @@
 import aiohttp  # Eşzamansız HTTP istekleri için bir kütüphane
 import random
-
+from datetime import datetime,timedelta
 class Pokemon:
     pokemons = {}
     # Nesne başlatma (kurucu)
@@ -12,6 +12,7 @@ class Pokemon:
         self.weight=None
         self.hp=random.randint(70, 100)
         self.power=random.randint(30,60)
+        self.last_feed_time=datetime.now()
         if pokemon_trainer not in Pokemon.pokemons:
             Pokemon.pokemons[pokemon_trainer] = self
         else:
@@ -41,7 +42,7 @@ class Pokemon:
         if not self.name:
             self.name = await self.get_name() 
         await self.load_data() 
-        return (f"Pokémonunuzun ismi: {self.name}\nPokemonun boyu:{self.height/10} metre\nPokemonun kilosu:{self.weight/10} kilogram\nPokemonun sağlığı:{self.hp}\nPokemonun Gücü:{self.power}")  # Pokémon adını içeren dizeyi döndürür
+        return (f"Pokémonunuzun ismi: {self.name}\nPokemonun boyu: {self.height/10} metre\nPokemonun kilosu: {self.weight/10} kilogram\nPokemonun sağlığı: {self.hp}\nPokemonun Gücü: {self.power}")  # Pokémon adını içeren dizeyi döndürür
 
     async def show_img(self):
         url = f'https://pokeapi.co/api/v2/pokemon/{self.pokemon_number}'  # İstek için URL API
@@ -63,7 +64,15 @@ class Pokemon:
         else:
             enemy.hp=0
             return f"@{self.pokemon_trainer} @{enemy.pokemon_trainer}'i yendi"
-
+    async def feed(self, feed_interval=60, hp_increase=10):
+        current_time = datetime.now()
+        delta_time = timedelta(seconds=feed_interval)
+        if (current_time - self.last_feed_time) > delta_time :
+            self.hp += hp_increase
+            self.last_feed_time= current_time 
+            return f"Pokémon'un sağlığı geri yüklenir. Mevcut HP: {self.hp}"
+        else:
+            return f"Pokémonunuzu şu zaman besleyebilirsiniz: {current_time + delta_time }"
 class Wizard(Pokemon):
     async def attack(self, enemy):
         magic_power=random.randint(5,14)
@@ -71,13 +80,18 @@ class Wizard(Pokemon):
         result = await super().attack(enemy)
         self.power-=magic_power
         return result + f"\n Sihirbaz büyülü bir saldırı yaptı ekstra büyü gücü: {magic_power}"
+    def feed(self):
+        return super().feed(hp_increase=25)
+    
 class Fighter(Pokemon):
     async def attack(self, enemy):
         super_power=random.randint(1,19)
         self.power+=super_power
         result = await super().attack(enemy)
         self.power-=super_power
-        return result + f"\n Sihirbaz büyülü bir saldırı yaptı ekstra süper güç: {super_power}"
+        return result + f"\n Savaşcı büyülü bir saldırı yaptı ekstra süper güç: {super_power}"
+    def feed(self):
+        return super().feed(feed_interval=30)
     
 
 
